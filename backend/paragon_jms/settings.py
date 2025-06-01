@@ -15,7 +15,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-secret-key-here')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'paragon-talu.onrender.com,localhost,127.0.0.1').split(',')
+
 
 # Application definition
 DJANGO_APPS = [
@@ -167,19 +168,18 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
     SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    os.getenv('FRONTEND_URL', 'http://localhost:3000'),
+    "https://paragon-opal.vercel.app",  # full URL with https
 ]
 
 if DEBUG:
-    CORS_ALLOWED_ORIGINS.extend([
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ])
+    CORS_ALLOWED_ORIGINS.append("http://localhost:3000")
+
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
