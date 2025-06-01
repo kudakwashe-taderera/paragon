@@ -1,0 +1,32 @@
+# Handle static files
+RewriteEngine On
+RewriteCond %{REQUEST_URI} ^/static/
+RewriteRule ^static/(.*)$ staticfiles/$1 [L]
+
+# Handle media files
+RewriteCond %{REQUEST_URI} ^/media/
+RewriteRule ^media/(.*)$ media/$1 [L]
+
+# Pass all other requests to Django application
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ passenger_wsgi.py/$1 [QSA,L]
+
+# Security headers
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "DENY"
+Header set X-XSS-Protection "1; mode=block"
+Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+# Disable directory browsing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(\.py|\.env|\.git)">
+    Order allow,deny
+    Deny from all
+</FilesMatch> 
