@@ -37,13 +37,18 @@ class UserLoginSerializer(serializers.Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
 
-        if email and password:
-            user = authenticate(username=email, password=password)
-            if not user:
-                raise serializers.ValidationError('Invalid credentials')
-            if not user.approved:
-                raise serializers.ValidationError('Account not approved yet')
-            attrs['user'] = user
+        if not email:
+            raise serializers.ValidationError({'email': 'Email is required'})
+        if not password:
+            raise serializers.ValidationError({'password': 'Password is required'})
+
+        user = authenticate(username=email, password=password)
+        if not user:
+            raise serializers.ValidationError({'detail': 'Invalid email or password'})
+        if not user.approved:
+            raise serializers.ValidationError({'detail': 'Your account is not approved yet'})
+            
+        attrs['user'] = user
         return attrs
 
 
