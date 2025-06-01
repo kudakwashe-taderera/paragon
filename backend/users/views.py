@@ -1,6 +1,7 @@
 from rest_framework import status, generics, permissions
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import login
@@ -139,3 +140,9 @@ class AllUsersView(generics.ListAPIView):
         if self.request.user.role != 'SUPERUSER':
             return User.objects.none()
         return User.objects.all().order_by('-created_at')
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_users(request):
+    users = User.objects.all().values('id', 'email', 'role', 'approved')
+    return Response(list(users))
