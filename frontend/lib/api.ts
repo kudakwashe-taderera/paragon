@@ -1,4 +1,5 @@
-const API_BASE_URL = "https://paragon-talu.onrender.com"
+const API_BASE_URL = "https://paragon-talu.onrender.com/api"
+
 
 
 export interface SystemSettings {
