@@ -158,12 +158,15 @@ class Command(BaseCommand):
         ]
 
         for name, series, width, height in paper_sizes:
-            PaperSize.objects.get_or_create(
-                name=name,
-                series=series,
+            PaperSize.objects.update_or_create(
                 width_mm=width,
-                height_mm=height
+                height_mm=height,
+                defaults={
+                    'name': name,
+                    'series': series,
+                }
             )
+
 
         self.stdout.write('✅ Created paper sizes')
 
