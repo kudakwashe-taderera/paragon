@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_BASE_URL = "https://paragon-talu.onrender.com"
+
 
 export interface SystemSettings {
   id: string
