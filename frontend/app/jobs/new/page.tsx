@@ -161,12 +161,8 @@ export default function NewJobPage() {
 
   useEffect(() => {
     const fetchSizes = async () => {
-      if (!formData.paper_weight) {
-        setPaperSizes([])
-        return
-      }
       try {
-        const res = await apiClient.getCompatibleSizes(formData.paper_weight)
+        const res = await apiClient.getCompatibleSizes()
         if (res.ok) {
           setPaperSizes(await res.json())
         } else {
@@ -177,7 +173,7 @@ export default function NewJobPage() {
       }
     }
     fetchSizes()
-  }, [formData.paper_weight])
+  }, [])
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value
@@ -464,7 +460,6 @@ export default function NewJobPage() {
                       onChange={handleSizeChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
                       required
-                      disabled={!formData.paper_weight}
                     >
                       <option value="">Select paper size</option>
                       {paperSizes.map((size) => (

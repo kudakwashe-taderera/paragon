@@ -54,6 +54,12 @@ class PaperWeightList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
+class PaperSizeList(generics.ListAPIView):
+    """Get all paper sizes ordered by series and name"""
+    queryset = PaperSize.objects.all().order_by('series', 'name')
+    serializer_class = PaperSizeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -93,17 +99,12 @@ def get_compatible_weights(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def get_compatible_sizes(request):
-    """Get compatible paper sizes for a paper weight"""
-    weight_id = request.GET.get('weight_id')
-    if not weight_id:
-        return Response({'error': 'weight_id is required'}, status=400)
-    
+    """Get all paper sizes (no compatibility filtering)"""
     try:
-        weight = PaperWeight.objects.get(id=weight_id)
-        sizes = weight.compatible_sizes.all()
+        sizes = PaperSize.objects.all().order_by('series', 'name')
         return Response(PaperSizeSerializer(sizes, many=True).data)
-    except PaperWeight.DoesNotExist:
-        return Response({'error': 'Paper weight not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
 
 
 @api_view(['POST'])
