@@ -139,8 +139,8 @@ export default function NewJobPage() {
       }
     }
     if (user) fetchDocketNumber()
-    // eslint-disable-next-line
-  }, [user, formData.job_type])
+    // Only run on initial load
+  }, [user]) // Remove formData.job_type from dependencies
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -201,8 +201,10 @@ export default function NewJobPage() {
     setFormData(prev => ({
       ...prev,
       job_type: newJobType,
-      // Reset docket number when switching to FOREIGN
-      docket_number: newJobType === "FOREIGN" ? "FOR-" : prev.docket_number
+      // Only set FOR- prefix if switching to FOREIGN and no FOR- prefix exists
+      docket_number: newJobType === "FOREIGN" 
+        ? (prev.docket_number.startsWith("FOR-") ? prev.docket_number : "FOR-")
+        : prev.docket_number
     }))
   }
 
