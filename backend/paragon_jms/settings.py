@@ -196,6 +196,14 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "content-type",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://paragon-opal.vercel.app",
+    "https://paragon-talu.onrender.com",
+]
+
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
