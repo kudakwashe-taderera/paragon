@@ -2,9 +2,6 @@ from rest_framework import status, generics, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.parsers import JSONParser
-from rest_framework.permissions import AllowAny
-from rest_framework.views import APIView
 from django.contrib.auth import login
 from .models import User
 from .serializers import (
@@ -31,25 +28,21 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-    parser_classes = [JSONParser]
+class LoginView(generics.GenericAPIView):
+    serializer_class = UserLoginSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        print("Incoming content type:", request.content_type)
-        print("Request body:", request.data)
-
-        serializer = UserLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'user': UserSerializer(user).data
-            }, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': UserSerializer(user).data
+        })
 
 
 class PendingUsersView(generics.ListAPIView):
