@@ -72,13 +72,24 @@ export default function AdminSettingsPage() {
         }
 
         try {
-          const data = await apiClient.getSystemSettings()
-          console.log('Settings data:', data)
-          if (!data.branch_set) {
-            data.branch_set = []
+          const response = await apiClient.getSystemSettings()
+          if (!response.ok) {
+            throw new Error("Failed to load settings")
           }
-          setSettings(data)
+          const data = await response.json()
+          console.log('Settings data:', data)
+
+          // Set default values for nested objects if they don't exist
+          const settingsWithDefaults = {
+            ...data,
+            branch_set: data.branch_set || [],
+            business_hours: data.business_hours || { start: "08:00", end: "17:00" },
+            contact_info: data.contact_info || { phone: "", email: "", address: "" }
+          }
+
+          setSettings(settingsWithDefaults)
         } catch (error) {
+          console.error("Error loading settings:", error)
           throw new Error("Failed to load settings")
         }
       } catch (error) {
