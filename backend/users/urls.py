@@ -11,5 +11,5 @@ urlpatterns = [
     path('admin/stats/', views.admin_stats, name='admin_stats'),
     path('profile/', views.user_profile, name='user_profile'),
     path('users/', views.AllUsersView.as_view(), name='all_users'),
-    path('check-users/', views.check_users),
+    path('check-users/', check_users, name='check_users'),
 ]
