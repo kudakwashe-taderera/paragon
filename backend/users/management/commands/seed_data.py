@@ -196,17 +196,19 @@ class Command(BaseCommand):
             booklets = ProductType.objects.get(name='Booklets')
 
             # Get paper specifications
-            art_paper = PaperType.objects.get(name='Art Paper')
-            glossy_paper = PaperType.objects.get(name='Glossy Paper')
-            bond_paper = PaperType.objects.get(name='Bond Paper')
+            art_paper = PaperType.objects.filter(name='Art Paper').first()
+            glossy_paper = PaperType.objects.filter(name='Glossy Paper').first()
+            bond_paper = PaperType.objects.filter(name='Bond Paper').first()
             
-            weight_250 = PaperWeight.objects.get(gsm=250)
-            weight_150 = PaperWeight.objects.get(gsm=150)
-            weight_80 = PaperWeight.objects.get(gsm=80)
+            weight_250 = PaperWeight.objects.filter(gsm=250).first()
+            weight_150 = PaperWeight.objects.filter(gsm=150).first()
+            weight_80 = PaperWeight.objects.filter(gsm=80).first()
             
-            business_card_size = PaperSize.objects.get(name='Business Card')
-            a4_size = PaperSize.objects.get(name='A4')
-            a3_size = PaperSize.objects.get(name='A3')
+            business_card_size = PaperSize.objects.filter(name='Business Card').order_by('id').first()
+            a4_size = PaperSize.objects.filter(name='A4').order_by('id').first()
+            a3_size = PaperSize.objects.filter(name='A3').order_by('id').first()
+
+
 
             sample_jobs = [
                 # Pending Jobs
