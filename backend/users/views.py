@@ -36,9 +36,14 @@ class LoginView(generics.GenericAPIView):
         print("Login Request Data:", request.data)  # Debug print
         serializer = self.get_serializer(data=request.data)
         
-        if not serializer.is_valid():
-            print("Serializer Errors:", serializer.errors)  # Debug print
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as e:
+            print("Validation Error Details:", e.detail)  # Debug print
+            return Response(
+                {'detail': e.detail if hasattr(e, 'detail') else str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
             
         user = serializer.validated_data['user']
         print("Authenticated User:", user)  # Debug print
