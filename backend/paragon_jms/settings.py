@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import dj_database_url
+from corsheaders.defaults import default_headers
 
 load_dotenv()
 
@@ -15,7 +16,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-h8j3m5n2k9p4q7r1s6t0v8w2x5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'paragon-talu.onrender.com,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv(
+    'ALLOWED_HOSTS',
+    'paragon-talu.onrender.com,localhost,127.0.0.1,paragon-opal.vercel.app'
+).split(',')
+
 
 
 # Application definition
@@ -174,12 +179,22 @@ if not DEBUG:
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "https://paragon-opal.vercel.app",  # full URL with https
+    "https://paragon-opal.vercel.app",
 ]
 
 if DEBUG:
     CORS_ALLOWED_ORIGINS.append("http://localhost:3000")
 
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "access-control-allow-origin",
+    "authorization",
+    "x-csrftoken",
+    "content-type",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -189,6 +204,10 @@ CORS_ALLOW_METHODS = [
     'PATCH',
     'POST',
     'PUT',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://paragon-opal.vercel.app",
 ]
 
 # Custom user model
