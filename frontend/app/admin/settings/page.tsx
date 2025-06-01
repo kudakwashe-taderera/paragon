@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, ChangeEvent } from "react"
 import { useRouter } from "next/navigation"
 import { AuthService } from "@/lib/auth"
 import { apiClient, type SystemSettings, type Branch } from "@/lib/api"
@@ -8,6 +8,11 @@ import DashboardLayout from "@/components/layout/DashboardLayout"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+interface DashboardLayoutProps {
+  title: string;
+  children: React.ReactNode;
+}
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>({
@@ -66,11 +71,14 @@ export default function AdminSettingsPage() {
           return
         }
 
-        const response = await apiClient.getSystemSettings()
-        if (response.ok) {
-          const data = await response.json()
+        try {
+          const data = await apiClient.getSystemSettings()
+          console.log('Settings data:', data)
+          if (!data.branch_set) {
+            data.branch_set = []
+          }
           setSettings(data)
-        } else {
+        } catch (error) {
           throw new Error("Failed to load settings")
         }
       } catch (error) {
@@ -125,6 +133,21 @@ export default function AdminSettingsPage() {
     }
   }
 
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, field: string) => {
+    setSettings({
+      ...settings,
+      [field]: e.target.value,
+      updated_at: new Date().toISOString()
+    })
+  }
+
+  const handleBranchInputChange = (e: ChangeEvent<HTMLInputElement>, field: keyof Omit<Branch, "id">) => {
+    setNewBranch({
+      ...newBranch,
+      [field]: e.target.value
+    })
+  }
+
   const handleAddBranch = async () => {
     try {
       const response = await apiClient.createBranch(newBranch)
@@ -164,7 +187,7 @@ export default function AdminSettingsPage() {
       const updatedBranch = await response.json()
       setSettings({
         ...settings,
-        branch_set: settings.branch_set.map(branch => 
+        branch_set: settings.branch_set.map((branch: Branch) => 
           branch.id === id ? updatedBranch : branch
         ),
         updated_at: new Date().toISOString()
@@ -195,7 +218,7 @@ export default function AdminSettingsPage() {
 
       setSettings({
         ...settings,
-        branch_set: settings.branch_set.filter(branch => branch.id !== id),
+        branch_set: settings.branch_set.filter((branch: Branch) => branch.id !== id),
         updated_at: new Date().toISOString()
       })
       
@@ -212,6 +235,9 @@ export default function AdminSettingsPage() {
       })
     }
   }
+
+  // Add a check for branch_set
+  const branches = settings?.branch_set || []
 
   if (loading) {
     return (
@@ -244,7 +270,7 @@ export default function AdminSettingsPage() {
                   <input
                     type="text"
                     value={settings.company_name}
-                    onChange={(e) => setSettings({ ...settings, company_name: e.target.value, updated_at: new Date().toISOString() })}
+                    onChange={(e) => handleInputChange(e, 'company_name')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter company name"
                   />
@@ -254,11 +280,11 @@ export default function AdminSettingsPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Default Branch</label>
                   <select
                     value={settings.default_branch}
-                    onChange={(e) => setSettings({ ...settings, default_branch: e.target.value, updated_at: new Date().toISOString() })}
+                    onChange={(e) => handleInputChange(e, 'default_branch')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="">Select default branch</option>
-                    {settings.branch_set.map(branch => (
+                    {Array.from(branches).map((branch) => (
                       <option key={branch.id} value={branch.id}>{branch.name}</option>
                     ))}
                   </select>
@@ -271,7 +297,7 @@ export default function AdminSettingsPage() {
                       <input
                         type="text"
                         value={settings.job_number_prefix}
-                        onChange={(e) => setSettings({ ...settings, job_number_prefix: e.target.value, updated_at: new Date().toISOString() })}
+                        onChange={(e) => handleInputChange(e, 'job_number_prefix')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Prefix (e.g., JOB-)"
                       />
@@ -280,7 +306,7 @@ export default function AdminSettingsPage() {
                       <input
                         type="text"
                         value={settings.job_number_suffix}
-                        onChange={(e) => setSettings({ ...settings, job_number_suffix: e.target.value, updated_at: new Date().toISOString() })}
+                        onChange={(e) => handleInputChange(e, 'job_number_suffix')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Suffix (e.g., -2024)"
                       />
@@ -295,7 +321,7 @@ export default function AdminSettingsPage() {
                     <div>
                       <select
                         value={settings.currency}
-                        onChange={(e) => setSettings({ ...settings, currency: e.target.value, updated_at: new Date().toISOString() })}
+                        onChange={(e) => handleInputChange(e, 'currency')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       >
                         <option value="USD">USD ($)</option>
@@ -308,7 +334,7 @@ export default function AdminSettingsPage() {
                       <input
                         type="number"
                         value={settings.tax_rate}
-                        onChange={(e) => setSettings({ ...settings, tax_rate: Number(e.target.value), updated_at: new Date().toISOString() })}
+                        onChange={(e) => handleInputChange(e, 'tax_rate')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Tax rate %"
                         min="0"
@@ -354,32 +380,38 @@ export default function AdminSettingsPage() {
 
               {/* Branch List */}
               <div className="space-y-4">
-                {settings.branch_set.map(branch => (
-                  <div key={branch.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-medium">{branch.name}</h4>
-                      <p className="text-sm text-gray-500">Code: {branch.code}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleUpdateBranch(branch.id, { is_active: !branch.is_active })}
-                        className={`px-3 py-1 rounded-lg text-sm ${
-                          branch.is_active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {branch.is_active ? 'Active' : 'Inactive'}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteBranch(branch.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                {branches.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No branches added yet</p>
+                ) : (
+                  <>
+                    {Array.from(branches).map((branch) => (
+                      <div key={branch.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{branch.name}</h4>
+                          <p className="text-sm text-gray-500">Code: {branch.code}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleUpdateBranch(branch.id, { is_active: !branch.is_active })}
+                            className={`px-3 py-1 rounded-lg text-sm ${
+                              branch.is_active 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {branch.is_active ? 'Active' : 'Inactive'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBranch(branch.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           </TabsContent>
@@ -397,11 +429,7 @@ export default function AdminSettingsPage() {
                       <input
                         type="time"
                         value={settings.business_hours.start}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          business_hours: { ...settings.business_hours, start: e.target.value },
-                          updated_at: new Date().toISOString()
-                        })}
+                        onChange={(e) => handleInputChange(e, 'business_hours.start')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
@@ -410,11 +438,7 @@ export default function AdminSettingsPage() {
                       <input
                         type="time"
                         value={settings.business_hours.end}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          business_hours: { ...settings.business_hours, end: e.target.value },
-                          updated_at: new Date().toISOString()
-                        })}
+                        onChange={(e) => handleInputChange(e, 'business_hours.end')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
@@ -427,32 +451,20 @@ export default function AdminSettingsPage() {
                     <input
                       type="tel"
                       value={settings.contact_info.phone}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        contact_info: { ...settings.contact_info, phone: e.target.value },
-                        updated_at: new Date().toISOString()
-                      })}
+                      onChange={(e) => handleInputChange(e, 'contact_info.phone')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Phone Number"
                     />
                     <input
                       type="email"
                       value={settings.contact_info.email}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        contact_info: { ...settings.contact_info, email: e.target.value },
-                        updated_at: new Date().toISOString()
-                      })}
+                      onChange={(e) => handleInputChange(e, 'contact_info.email')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Email Address"
                     />
                     <textarea
                       value={settings.contact_info.address}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        contact_info: { ...settings.contact_info, address: e.target.value },
-                        updated_at: new Date().toISOString()
-                      })}
+                      onChange={(e) => handleInputChange(e, 'contact_info.address')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Business Address"
                       rows={3}
@@ -530,11 +542,7 @@ export default function AdminSettingsPage() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Maintenance Message</label>
                     <textarea
                       value={settings.maintenance_message}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        maintenance_message: e.target.value,
-                        updated_at: new Date().toISOString()
-                      })}
+                      onChange={(e) => handleInputChange(e, 'maintenance_message')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Enter maintenance message to display to users"
                       rows={3}
