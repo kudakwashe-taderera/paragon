@@ -139,12 +139,14 @@ class ApiClient {
 
   // Auth endpoints
   async login(email: string, password: string) {
-    const response = await this.request("/auth/login/", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    })
-    return response
-  }
+      console.log("Login Request Payload:", { email, password });  // Debug log
+      const response = await this.request("/auth/login/", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      })
+      return response
+  },
+
 
   async register(userData: { full_name: string; email: string; password: string; confirm_password: string }) {
     const response = await this.request("/auth/register/", {
