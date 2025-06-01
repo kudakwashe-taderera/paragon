@@ -119,12 +119,20 @@ export default function NewJobPage() {
         const res = await apiClient.getDocketCounter(formData.job_type || "LOCAL")
         if (res.ok) {
           const data = await res.json()
-          setFormData(prev => ({
-            ...prev,
-            docket_number: data.current_number
-              ? `LOC-${Number(data.current_number) + 1}`
-              : "LOC-1"
-          }))
+          if (formData.job_type === "LOCAL") {
+            setFormData(prev => ({
+              ...prev,
+              docket_number: data.current_number
+                ? `LOC-${Number(data.current_number) + 1}`
+                : "LOC-1"
+            }))
+          } else {
+            // For foreign jobs, set a default prefix if empty
+            setFormData(prev => ({
+              ...prev,
+              docket_number: prev.docket_number || "FOR-"
+            }))
+          }
         }
       } catch (error) {
         // Optionally handle error
@@ -187,10 +195,54 @@ export default function NewJobPage() {
     setShowCustomSize(value === 'other')
   }
 
+  // Add handler for job type change
+  const handleJobTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newJobType = e.target.value
+    setFormData(prev => ({
+      ...prev,
+      job_type: newJobType,
+      // Reset docket number when switching to FOREIGN
+      docket_number: newJobType === "FOREIGN" ? "FOR-" : prev.docket_number
+    }))
+  }
+
+  // Add handler for docket number change
+  const handleDocketNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value
+    if (formData.job_type === "FOREIGN") {
+      // Ensure the FOR- prefix is always present for foreign jobs
+      if (!value.startsWith("FOR-")) {
+        value = "FOR-" + value.replace("FOR-", "")
+      }
+      setFormData(prev => ({ ...prev, docket_number: value }))
+    }
+  }
+
+  // Add validation for foreign docket number
+  const validateForeignDocketNumber = () => {
+    if (formData.job_type === "FOREIGN") {
+      if (!formData.docket_number.startsWith("FOR-")) {
+        return "Foreign docket numbers must start with FOR-"
+      }
+      if (formData.docket_number === "FOR-") {
+        return "Please complete the docket number"
+      }
+    }
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
     setFormError(null)
+
+    // Validate foreign docket number
+    const docketError = validateForeignDocketNumber()
+    if (docketError) {
+      setFormError(docketError)
+      setSubmitting(false)
+      return
+    }
 
     try {
       const submitData = {
@@ -304,7 +356,7 @@ export default function NewJobPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Job Type</label>
                   <select
                     value={formData.job_type}
-                    onChange={(e) => setFormData({ ...formData, job_type: e.target.value })}
+                    onChange={handleJobTypeChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
                     required
                   >
@@ -318,10 +370,16 @@ export default function NewJobPage() {
                   <input
                     type="text"
                     value={formData.docket_number}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-100 text-gray-600"
-                    disabled
-                    readOnly
-                    placeholder="Will be generated"
+                    onChange={handleDocketNumberChange}
+                    className={`w-full px-4 py-3 border border-gray-300 rounded-xl ${
+                      formData.job_type === "FOREIGN" 
+                        ? "bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                    disabled={formData.job_type !== "FOREIGN"}
+                    readOnly={formData.job_type !== "FOREIGN"}
+                    placeholder={formData.job_type === "FOREIGN" ? "FOR-..." : "Will be generated"}
+                    required
                   />
                 </div>
 

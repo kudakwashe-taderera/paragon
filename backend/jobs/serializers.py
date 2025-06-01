@@ -46,13 +46,26 @@ class JobCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = [
-            'job_id', 'branch', 'job_type', 'sales_rep', 'order_taken_by',
+            'job_id', 'branch', 'job_type', 'docket_number', 'sales_rep', 'order_taken_by',
             'customer', 'contact_person', 'mobile_number', 'email_address',
             'quantity', 'description', 'product_type', 'paper_type',
             'paper_weight', 'paper_size', 'notes', 'print_cost',
             'design_cost'
         ]
         read_only_fields = ('job_id',)
+
+    def validate_docket_number(self, value):
+        """
+        Validate the docket number format and uniqueness.
+        """
+        job_type = self.initial_data.get('job_type')
+        
+        if job_type == 'FOREIGN':
+            if not value or not value.startswith('FOR-'):
+                raise serializers.ValidationError("Foreign docket numbers must start with 'FOR-'")
+            if Job.objects.filter(docket_number=value).exists():
+                raise serializers.ValidationError("This docket number already exists")
+        return value
 
     def _generate_unique_docket_number(self, counter):
         """
@@ -95,9 +108,12 @@ class JobCreateSerializer(serializers.ModelSerializer):
                 # If counter doesn't exist, create it and retry
                 DocketCounter.objects.create(job_type='LOCAL', current_number=0)
                 return self.create(validated_data)
-        
-        # For FOREIGN jobs, just create the job with the provided docket number
-        return super().create(validated_data)
+        else:
+            # For FOREIGN jobs, calculate total cost and create the job
+            print_cost = validated_data.get('print_cost', 0)
+            design_cost = validated_data.get('design_cost', 0)
+            validated_data['total_cost'] = print_cost + design_cost
+            return super().create(validated_data)
 
 
 class JobUpdateSerializer(serializers.ModelSerializer):
