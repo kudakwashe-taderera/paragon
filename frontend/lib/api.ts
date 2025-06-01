@@ -327,11 +327,11 @@ class ApiClient {
 
   // Settings endpoints
   async getSystemSettings() {
-    return this.request('/settings')
+    return this.request('/settings/')
   }
 
   async updateSystemSettings(settings: Partial<SystemSettings>) {
-    return this.request('/settings', {
+    return this.request('/settings/', {
       method: 'PUT',
       body: JSON.stringify(settings)
     })
@@ -339,21 +339,21 @@ class ApiClient {
 
   // Branch management
   async createBranch(branch: Omit<Branch, 'id'>) {
-    return this.request('/branches', {
+    return this.request('/settings/branches/', {
       method: 'POST',
       body: JSON.stringify(branch)
     })
   }
 
   async updateBranch(id: string, branch: Partial<Branch>) {
-    return this.request(`/branches/${id}`, {
+    return this.request(`/settings/branches/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(branch)
     })
   }
 
   async deleteBranch(id: string) {
-    return this.request(`/branches/${id}`, {
+    return this.request(`/settings/branches/${id}/`, {
       method: 'DELETE'
     })
   }
