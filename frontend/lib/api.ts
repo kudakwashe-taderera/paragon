@@ -6,7 +6,7 @@ export interface SystemSettings {
   id: string
   company_name: string
   default_branch: string
-  branches: Branch[]
+  branch_set: Branch[]
   auto_approve_users: boolean
   email_notifications: boolean
   system_maintenance: boolean

@@ -14,7 +14,7 @@ export default function AdminSettingsPage() {
     id: "",
     company_name: "",
     default_branch: "",
-    branches: [],
+    branch_set: [],
     auto_approve_users: false,
     email_notifications: true,
     system_maintenance: false,
@@ -135,7 +135,7 @@ export default function AdminSettingsPage() {
       const branch = await response.json()
       setSettings({
         ...settings,
-        branches: [...settings.branches, branch],
+        branch_set: [...settings.branch_set, branch],
         updated_at: new Date().toISOString()
       })
       setNewBranch({ name: "", code: "", is_active: true })
@@ -164,7 +164,7 @@ export default function AdminSettingsPage() {
       const updatedBranch = await response.json()
       setSettings({
         ...settings,
-        branches: settings.branches.map(branch => 
+        branch_set: settings.branch_set.map(branch => 
           branch.id === id ? updatedBranch : branch
         ),
         updated_at: new Date().toISOString()
@@ -195,7 +195,7 @@ export default function AdminSettingsPage() {
 
       setSettings({
         ...settings,
-        branches: settings.branches.filter(branch => branch.id !== id),
+        branch_set: settings.branch_set.filter(branch => branch.id !== id),
         updated_at: new Date().toISOString()
       })
       
@@ -258,7 +258,7 @@ export default function AdminSettingsPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="">Select default branch</option>
-                    {settings.branches.map(branch => (
+                    {settings.branch_set.map(branch => (
                       <option key={branch.id} value={branch.id}>{branch.name}</option>
                     ))}
                   </select>
@@ -354,7 +354,7 @@ export default function AdminSettingsPage() {
 
               {/* Branch List */}
               <div className="space-y-4">
-                {settings.branches.map(branch => (
+                {settings.branch_set.map(branch => (
                   <div key={branch.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
                       <h4 className="font-medium">{branch.name}</h4>
